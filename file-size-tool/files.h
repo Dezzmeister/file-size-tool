@@ -55,12 +55,14 @@ LPWSTR fmt(const LPWSTR fmt_str, ...);
 
 // Prints a formatted string to stdout. This is very similar to printf, but it's defined
 // in terms of Win32 API functions instead of those in the stdlib.
-void print_fmt(const LPWSTR fmt_str, ...);
+void print_fmt(const LPCWSTR fmt_str, ...);
 
 // Prints a formatted string to stderr.
-void print_err_fmt(const LPWSTR fmt_str, ...);
+void print_err_fmt(const LPCWSTR fmt_str, ...);
 
 // Constructs a `file_map` from the given directory.
-file_map * measure_dir(LPWSTR root_dir);
+file_map * measure_dir(const LPCWSTR root_dir, const DWORD64 threshold);
 
-void print_stats(LPWSTR dir, file_map * root);
+void print_stats(const LPCWSTR dir, file_map * root);
+
+DWORD64 size_to_bytes(const LPWSTR size_str);

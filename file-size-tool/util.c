@@ -1,3 +1,4 @@
+#include <Shlwapi.h>
 #include "files.h"
 
 HANDLE std_out;
@@ -56,7 +57,7 @@ void dealloc_or_die(void * mem) {
 	check_err(! result);
 }
 
-LPWSTR vfmt(WCHAR * const fmt_str, va_list args) {
+static LPWSTR vfmt(const LPCWSTR fmt_str, va_list args) {
 	LPWSTR buf;
 	DWORD result = FormatMessageW(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_STRING,
@@ -89,7 +90,7 @@ LPWSTR fmt(const LPWSTR fmt_str, ...) {
 
 }
 
-void print_fmt(const LPWSTR fmt_str, ...) {
+void print_fmt(const LPCWSTR fmt_str, ...) {
 	va_list args;
 	va_start(args, fmt_str);
 
@@ -100,7 +101,7 @@ void print_fmt(const LPWSTR fmt_str, ...) {
 	LocalFree(msg);
 }
 
-void print_err_fmt(const LPWSTR fmt_str, ...) {
+void print_err_fmt(const LPCWSTR fmt_str, ...) {
 	va_list args;
 	va_start(args, fmt_str);
 
@@ -109,4 +110,37 @@ void print_err_fmt(const LPWSTR fmt_str, ...) {
 
 	WriteConsole(std_err, msg, lstrlenW(msg), NULL, NULL);
 	LocalFree(msg);
+}
+
+DWORD64 size_to_bytes(const LPWSTR size_str) {
+	int str_len = lstrlenW(size_str);
+	WCHAR last_char = size_str[str_len - 1];
+	DWORD64 factor = 1;
+
+	if (last_char == L'K' || last_char == L'k') {
+		factor = 1000;
+		size_str[str_len - 1] = '\0';
+	} else if (last_char == L'M' || last_char == L'm') {
+		factor = 1000 * 1000;
+		size_str[str_len - 1] = '\0';
+	} else if (last_char == L'G' || last_char == L'g') {
+		factor = 1000 * 1000 * 1000;
+		size_str[str_len - 1] = '\0';
+	}
+
+	DWORD64 num;
+	BOOL result = StrToInt64ExW(size_str, STIF_SUPPORT_HEX, &num);
+	size_str[str_len - 1] = last_char;
+
+	if (! result) {
+		print_err_fmt(L"Invalid threshold size\n");
+		ExitProcess(1);
+	}
+
+	if (num < 0) {
+		print_err_fmt(L"Threshold size cannot be negative\n");
+		ExitProcess(1);
+	}
+
+	return num * factor;
 }

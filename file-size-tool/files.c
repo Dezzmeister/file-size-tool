@@ -2,7 +2,7 @@
 #include <Pathcch.h>
 #include "files.h"
 
-static void check_path_err(HRESULT result, LPWSTR path, LPWSTR more) {
+static void check_path_err(HRESULT result, const LPCWSTR path, const LPCWSTR more) {
 	if (result != S_OK) {
 		print_err_fmt(L"Failed to join %1!s! and %2!s!\n", path, more);
 		ExitProcess(result);
@@ -14,7 +14,7 @@ static BOOL is_dot_path(const WCHAR path[MAX_PATH]) {
 		(path[0] == '.' && path[1] == '.' && path[2] == '\0');
 }
 
-file_map * measure_dir(LPWSTR dir) {
+file_map * measure_dir(const LPCWSTR dir, const DWORD64 threshold) {
 	WCHAR path_buf[MAX_PATH];
 	WCHAR child_buf[MAX_PATH];
 	HRESULT result = PathCchCombine(path_buf, MAX_PATH, dir, L"*");
@@ -36,7 +36,7 @@ file_map * measure_dir(LPWSTR dir) {
 			result = PathCchCombine(child_buf, MAX_PATH, dir, file_data.cFileName);
 			check_path_err(result, dir, file_data.cFileName);
 
-			next = measure_dir(child_buf);
+			next = measure_dir(child_buf, threshold);
 		} else {
 			next = alloc_or_die(sizeof(file_map));
 			next->first_child = NULL;
@@ -64,10 +64,33 @@ file_map * measure_dir(LPWSTR dir) {
 	out->size = total_size;
 	CopyMemory(out->filename, dir, MAX_PATH);
 
+	file_map * prev = NULL;
+	curr = out->first_child;
+
+	// Remove all child nodes with size < threshold
+	while (curr) {
+		if (curr->size < threshold) {
+			if (prev) {
+				prev->sibling = curr->sibling;
+			} else {
+				out->first_child = curr->sibling;
+			}
+
+			file_map * next = curr->sibling;
+			curr->sibling = NULL;
+
+			free_file_map(curr);
+			curr = next;
+		} else {
+			prev = curr;
+			curr = curr->sibling;
+		}
+	}
+
 	return out;
 }
 
-void print_stats(LPWSTR dir, file_map * node) {
+void print_stats(const LPCWSTR dir, file_map * node) {
 	WCHAR path_buf[MAX_PATH];
 	HRESULT result = PathCchCombine(path_buf, MAX_PATH, dir, node->filename);
 	check_path_err(result, dir, node->filename);
