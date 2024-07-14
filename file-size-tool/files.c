@@ -14,13 +14,13 @@ static BOOL is_dot_path(const WCHAR path[MAX_PATH]) {
 		(path[0] == '.' && path[1] == '.' && path[2] == '\0');
 }
 
-file_map * measure_dir(const LPCWSTR dir, const DWORD64 threshold) {
+file_map * measure_dir(const LPCWSTR dir, const DWORD64 threshold, const BOOL is_top_level) {
 	WCHAR path_buf[MAX_PATH];
 	WCHAR child_buf[MAX_PATH];
 	HRESULT result = PathCchCombine(path_buf, MAX_PATH, dir, L"*");
 	check_path_err(result, dir, L"*");
 
-	WIN32_FIND_DATA file_data;
+	WIN32_FIND_DATAW file_data;
 	HANDLE h = FindFirstFileW(path_buf, &file_data);
 	check_err(h == INVALID_HANDLE_VALUE);
 
@@ -36,13 +36,15 @@ file_map * measure_dir(const LPCWSTR dir, const DWORD64 threshold) {
 			result = PathCchCombine(child_buf, MAX_PATH, dir, file_data.cFileName);
 			check_path_err(result, dir, file_data.cFileName);
 
-			next = measure_dir(child_buf, threshold);
+			next = measure_dir(child_buf, threshold, FALSE);
+			next->attributes = file_data.dwFileAttributes;
 		} else {
 			next = alloc_or_die(sizeof(file_map));
 			next->first_child = NULL;
 			next->sibling = NULL;
 			next->size = ((DWORD64)file_data.nFileSizeHigh << 32) | file_data.nFileSizeLow;
 			CopyMemory(next->filename, file_data.cFileName, MAX_PATH);
+			next->attributes = file_data.dwFileAttributes;
 		}
 
 		if (curr) {
@@ -58,11 +60,24 @@ file_map * measure_dir(const LPCWSTR dir, const DWORD64 threshold) {
 		total_size += curr->size;
 	} while (FindNextFileW(h, &file_data));
 
+	BOOL close_result = FindClose(h);
+	check_err(! close_result);
+
 	file_map * out = alloc_or_die(sizeof(file_map));
 	out->first_child = root;
 	out->sibling = NULL;
 	out->size = total_size;
 	CopyMemory(out->filename, dir, MAX_PATH);
+
+	if (is_top_level) {
+		h = FindFirstFileW(dir, &file_data);
+		check_err(h == INVALID_HANDLE_VALUE);
+
+		out->attributes = file_data.dwFileAttributes;
+
+		close_result = FindClose(h);
+		check_err(! close_result);
+	}
 
 	file_map * prev = NULL;
 	curr = out->first_child;
@@ -91,11 +106,25 @@ file_map * measure_dir(const LPCWSTR dir, const DWORD64 threshold) {
 }
 
 void print_stats(const LPCWSTR dir, file_map * node) {
+	static WCHAR size_buf[BYTES_TO_SIZE_MAX_CHARS];
 	WCHAR path_buf[MAX_PATH];
 	HRESULT result = PathCchCombine(path_buf, MAX_PATH, dir, node->filename);
 	check_path_err(result, dir, node->filename);
 
-	print_fmt(L"%1!d!\t%2!s!\n", node->size, path_buf);
+	LPCWSTR entry_type;
+
+	if (node->attributes & FILE_ATTRIBUTE_DIRECTORY) {
+		entry_type = can_use_colors ? L"\x1b[93md\x1b[0m" : L"d";
+	} else {
+		entry_type = can_use_colors ? L"\x1b[92mf\x1b[0m" : L"f";
+	}
+
+	const LPCWSTR fmt_str = can_use_colors ?
+		L"\x1b[94m%1!s!\x1b[0m\t\t%2!s!\t%3!s!\n" :
+		L"%1!s!\t\t%2!s!\t%3!s!\n";
+
+	bytes_to_size(size_buf, node->size);
+	print_fmt(fmt_str, size_buf, entry_type, path_buf);
 
 	if (node->first_child) {
 		print_stats(path_buf, node->first_child);

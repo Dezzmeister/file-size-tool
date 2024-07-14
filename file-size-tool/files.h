@@ -1,12 +1,17 @@
 #pragma once
 #include <Windows.h>
 
-#define ARR_SIZE(T)			(sizeof (T) / sizeof ((T)[0]))
+#define ARR_SIZE(T)						(sizeof (T) / sizeof ((T)[0]))
+#define BYTES_TO_SIZE_MAX_CHARS			16
+#define SIZE_SCALE						1000L
+
+extern int _fltused;
 
 // These will be initialized before `wmain`.
 extern HANDLE std_out;
 extern HANDLE std_err;
 extern HANDLE heap;
+extern BOOL can_use_colors;
 
 // This is a trie-like structure where the keys are paths, and the key
 // "characters" are path segments.
@@ -28,6 +33,8 @@ struct file_map {
 	// into the structure. If this is the root entry, then this will be the fully qualified
 	// path of the root.
 	WCHAR filename[MAX_PATH];
+	// File attributes. These come from the `WIN32_FIND_DATAW` structure.
+	DWORD attributes;
 };
 typedef struct file_map file_map;
 
@@ -61,8 +68,10 @@ void print_fmt(const LPCWSTR fmt_str, ...);
 void print_err_fmt(const LPCWSTR fmt_str, ...);
 
 // Constructs a `file_map` from the given directory.
-file_map * measure_dir(const LPCWSTR root_dir, const DWORD64 threshold);
+file_map * measure_dir(const LPCWSTR root_dir, const DWORD64 threshold, const BOOL is_top_level);
 
 void print_stats(const LPCWSTR dir, file_map * root);
 
 DWORD64 size_to_bytes(const LPWSTR size_str);
+
+void bytes_to_size(WCHAR str[BYTES_TO_SIZE_MAX_CHARS], const DWORD64 size);

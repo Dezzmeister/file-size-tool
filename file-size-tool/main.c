@@ -27,6 +27,8 @@ ULONG WINAPI entry() {
 	argv = CommandLineToArgvW(cmd_line, &argc);
 	check_err(! argv);
 
+	can_use_colors = SetConsoleMode(std_out, ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+
 	return wmain(argc, argv);
 }
 
@@ -38,7 +40,7 @@ int wmain(const int argc, WCHAR ** const argv) {
 	}
 
 	DWORD64 threshold = size_to_bytes(argv[2]);
-	file_map * map = measure_dir(argv[1], threshold);
+	file_map * map = measure_dir(argv[1], threshold, TRUE);
 
 	if (map->size < threshold) {
 		print_err_fmt(L"No files or directories found less than %1!s!\n", argv[2]);
