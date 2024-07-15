@@ -116,7 +116,7 @@ void print_stats(const LPCWSTR dir, file_map * node) {
 	if (node->attributes & FILE_ATTRIBUTE_DIRECTORY) {
 		entry_type = can_use_colors ? L"\x1b[93md\x1b[0m" : L"d";
 	} else {
-		entry_type = can_use_colors ? L"\x1b[92mf\x1b[0m" : L"f";
+		entry_type = can_use_colors ? L"\x1b[37mf\x1b[0m" : L"f";
 	}
 
 	const LPCWSTR fmt_str = can_use_colors ?
