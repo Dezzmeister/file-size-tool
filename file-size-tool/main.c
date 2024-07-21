@@ -40,15 +40,28 @@ int wmain(const int argc, WCHAR ** const argv) {
 	}
 
 	DWORD64 threshold = size_to_bytes(argv[2]);
-	file_map * map = measure_dir(argv[1], threshold, TRUE);
+	file_map_pair pair = measure_dir(argv[1], threshold, TRUE);
 
-	if (map->size < threshold) {
-		print_err_fmt(L"No files or directories found less than %1!s!\n", argv[2]);
+	if (pair.root && pair.root->size < threshold) {
+		print_err_fmt(L"No files or directories found with size less than %1!s!\n", argv[2]);
+
+		if (pair.skipped) {
+			print_err_fmt(L"\nSome directories were skipped:\n\n");
+			print_skipped_file_map(pair.skipped);
+		}
+
 		return 1;
 	}
 
-	print_stats(L"", map);
-	free_file_map(map);
+	print_file_map(L"", pair.root);
+
+	if (pair.skipped) {
+		print_err_fmt(L"\nSome directories were skipped:\n\n");
+		print_skipped_file_map(pair.skipped);
+	}
+
+	free_file_map(pair.root);
+	free_skipped_file_map(pair.skipped);
 
 	return 0;
 }

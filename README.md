@@ -1,13 +1,12 @@
 # File Size Tool
 
 This is a lightweight tool for Windows that reports files and directories over a given size.
-The release binary is 9KB, and the program uses little memory.
+The release binary is 11KB, and the program uses little memory.
 
 ## Building
 
 I developed this in Visual Studio 2022. You really only need the MSVC compiler and a few
-import libraries that should come with any modern Windows. The linker will remove references
-to the C Runtime Library, so you'll only be able to build the Release target.
+import libraries that should come with any modern Windows.
 
 ## Running
 
