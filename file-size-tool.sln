@@ -7,6 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "file-size-tool", "file-size
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{17BB5D4C-BDA6-4006-97B6-D4E721171976}"
 	ProjectSection(SolutionItems) = preProject
+		COPYING = COPYING
 		README.md = README.md
 		screenshot.PNG = screenshot.PNG
 	EndProjectSection

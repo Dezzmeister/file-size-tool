@@ -1,3 +1,20 @@
+/*
+ * This file is part of file-size-tool, a directory scanner.
+ * Copyright (C) 2024  Joe Desmond
+ *
+ * file-size-tool is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * file-size-tool is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with file-size-tool.  If not, see <https://www.gnu.org/licenses/>.
+ */
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <shellapi.h>
@@ -10,7 +27,11 @@ L"\t<dir> is the directory to scan. All subdirectories and files will be scanned
 L"\t<threshold> is a size string like '50K', '0x20M', or '1G'. This string must be\n"
 L"\ta positive integer. It can be decimal or hexadecimal, and it can be followed by\n"
 L"\t'K' (kilobytes), 'M' (megabytes), or 'G' (gigabytes). If no scale is provided,\n"
-L"\tbytes are assumed.";
+L"\tbytes are assumed."
+L"\n\n"
+L"fx is licensed under the GNU Public License 3 or any later version at your choice.\n"
+L"See https://github.com/Dezzmeister/file-size-tool/blob/master/COPYING for details.\n"
+L"You can download the source code at https://github.com/Dezzmeister/file-size-tool.\n";
 
 int wmain(const int argc, WCHAR ** const argv);
 

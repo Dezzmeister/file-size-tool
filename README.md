@@ -23,3 +23,8 @@ directory), with their sizes on the left:
 ![image](./screenshot.PNG)
 
 The sizes of directory entries are not included.
+
+## License
+
+file-size-tool is licensed under the GNU General Public License 3 or any later version at your choice.
+See [COPYING](https://github.com/Dezzmeister/file-size-tool/blob/master/COPYING) for details.
