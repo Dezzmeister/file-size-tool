@@ -29,7 +29,7 @@ L"\ta positive integer. It can be decimal or hexadecimal, and it can be followed
 L"\t'K' (kilobytes), 'M' (megabytes), or 'G' (gigabytes). If no scale is provided,\n"
 L"\tbytes are assumed."
 L"\n\n"
-L"fx is licensed under the GNU Public License 3 or any later version at your choice.\n"
+L"file-size-tool is licensed under the GNU Public License 3 or any later version at your choice.\n"
 L"See https://github.com/Dezzmeister/file-size-tool/blob/master/COPYING for details.\n"
 L"You can download the source code at https://github.com/Dezzmeister/file-size-tool.\n";
 

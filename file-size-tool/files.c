@@ -32,9 +32,9 @@ static BOOL is_dot_path(_In_reads_z_(3) const LPCWSTR path) {
 }
 
 file_map_pair measure_dir(_In_z_ const LPCWSTR dir, const DWORD64 threshold, const BOOL is_top_level) {
-	WCHAR path_buf[MAX_PATH];
-	WCHAR child_buf[MAX_PATH];
-	HRESULT result = PathCchCombine(path_buf, MAX_PATH, dir, L"*");
+	WCHAR * path_buf = alloc_or_die(LOCAL_MAX_PATH * sizeof(WCHAR));
+	WCHAR * child_buf = alloc_or_die(LOCAL_MAX_PATH * sizeof(WCHAR));
+	HRESULT result = PathCchCombineEx(path_buf, LOCAL_MAX_PATH, dir, L"*", PATHCCH_ALLOW_LONG_PATHS);
 	check_path_err(result, dir, L"*");
 
 	file_map * out = alloc_or_die(sizeof(file_map));
@@ -60,6 +60,8 @@ file_map_pair measure_dir(_In_z_ const LPCWSTR dir, const DWORD64 threshold, con
 			pair.root = NULL;
 			pair.skipped = skipped;
 
+			dealloc_or_die(path_buf);
+			dealloc_or_die(child_buf);
 			return pair;
 		}
 
@@ -84,6 +86,8 @@ file_map_pair measure_dir(_In_z_ const LPCWSTR dir, const DWORD64 threshold, con
 		pair.root = NULL;
 		pair.skipped = skipped;
 
+		dealloc_or_die(path_buf);
+		dealloc_or_die(child_buf);
 		return pair;
 	}
 
@@ -99,7 +103,7 @@ file_map_pair measure_dir(_In_z_ const LPCWSTR dir, const DWORD64 threshold, con
 		if (is_dot_path(file_data.cFileName)) {
 			continue;
 		} else if (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-			result = PathCchCombine(child_buf, MAX_PATH, dir, file_data.cFileName);
+			result = PathCchCombineEx(child_buf, LOCAL_MAX_PATH, dir, file_data.cFileName, PATHCCH_ALLOW_LONG_PATHS);
 			check_path_err(result, dir, file_data.cFileName);
 
 			sub_result = measure_dir(child_buf, threshold, FALSE);
@@ -175,6 +179,8 @@ file_map_pair measure_dir(_In_z_ const LPCWSTR dir, const DWORD64 threshold, con
 	pair.root = out;
 	pair.skipped = skipped_root;
 
+	dealloc_or_die(path_buf);
+	dealloc_or_die(child_buf);
 	return pair;
 }
 
@@ -184,8 +190,8 @@ void print_file_map(_In_z_ const LPCWSTR dir, _In_opt_ const file_map * node) {
 	}
 
 	static WCHAR size_buf[BYTES_TO_SIZE_MAX_CHARS];
-	WCHAR path_buf[MAX_PATH];
-	HRESULT result = PathCchCombine(path_buf, MAX_PATH, dir, node->filename);
+	WCHAR * path_buf = alloc_or_die(LOCAL_MAX_PATH * sizeof(WCHAR));
+	HRESULT result = PathCchCombineEx(path_buf, LOCAL_MAX_PATH, dir, node->filename, PATHCCH_ALLOW_LONG_PATHS);
 	check_path_err(result, dir, node->filename);
 
 	LPCWSTR entry_type;
@@ -205,6 +211,7 @@ void print_file_map(_In_z_ const LPCWSTR dir, _In_opt_ const file_map * node) {
 
 	print_file_map(path_buf, node->first_child);
 	print_file_map(dir, node->sibling);
+	dealloc_or_die(path_buf);
 }
 
 void print_skipped_file_map(_In_opt_ const skipped_file_map * root) {

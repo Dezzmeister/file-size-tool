@@ -21,6 +21,7 @@
 #define ARR_SIZE(T)						(sizeof (T) / sizeof ((T)[0]))
 #define BYTES_TO_SIZE_MAX_CHARS			16
 #define SIZE_SCALE						1000L
+#define LOCAL_MAX_PATH					4096
 
 extern int _fltused;
 
@@ -49,7 +50,7 @@ struct file_map {
 	// The path segment of this entry. Taken with the parent's path, this forms a unique key
 	// into the structure. If this is the root entry, then this will be the fully qualified
 	// path of the root.
-	WCHAR filename[MAX_PATH];
+	WCHAR filename[LOCAL_MAX_PATH];
 	// File attributes. These come from the `WIN32_FIND_DATAW` structure.
 	DWORD attributes;
 };
@@ -61,7 +62,7 @@ struct skipped_file_map {
 	// The next skipped entry, or NULL if this is the last one
 	struct skipped_file_map * next;
 	// The full path to this entry
-	WCHAR path[MAX_PATH];
+	WCHAR path[LOCAL_MAX_PATH];
 	// An error code from `GetLastError` that gives the reason why this entry was skipped
 	DWORD reason;
 };
